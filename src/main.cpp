@@ -120,31 +120,71 @@ void initialize(){
 
 //auton
 //load pure pursuit path
-ASSET(crossover_txt);
+ASSET(skillsusa_txt);
+ASSET(skillsusa2_txt);
+ASSET(skillsusa3_txt);
+ASSET(skillsusa4_txt);
+ASSET(skillsusa5_txt);
 void autonomous() {
 	// SKILLZ
 	//go to matchload spot
 	chassi.moveToPoint(-59.732,-49.971,2000,false,127.0f,false);
 	//turn to face cata
-	chassi.turnTo(37.403,-1.933,1000,false,127.0f,false);
+	chassi.turnTo(37.403,-5.933,1000,false,127.0f,false);
 	//move back to touch bar
 	chassi.moveToPoint(-58.732,-49.971,2000,true,127.0f,false);
 	//turn on cata
 	pneum.set_value(true);
 	cata1.move_velocity(300);
 	//matchload
-	for (double i=0;i<=35;i+=0.01){
-		master.print(1, 0, "%.2fs",35-i);
+	for (double i=0;i<=32;i+=0.01){
+		master.print(1, 0, "%.2fs",32-i);
 		pros::delay(10);
 	}
 	cata1.brake();
 	pneum.set_value(false);
+	chassi.setPose(-58.732, -49.971, 240);
 	//push in ball(s)
-	chassi.turnTo(-62.863,-68,2000);
-	chassi.moveToPoint(-62.863,-34.75,2000);
+	chassi.turnTo(-64.863,-68,2000);
+	chassi.moveToPoint(-64.863,-34.75,2000);
 	//crossover to other side
-	chassi.follow(crossover_txt, 15.0f,7000,false,false);
+	chassi.follow(skillsusa_txt, 15.0f,2800,false,false);
+	pros::delay(100);
+	chassi.setPose(34, -59, 270);
+	pros::delay(100);
+	chassi.follow(skillsusa2_txt, 15.0f, 1250, false, false);
+	pros::delay(1500);
+	chassi.setPose(60, -20, 90);
+	chassi.moveToPoint(68, -20, 1000, true, 90);
+	pros::delay(500);
+	chassi.moveToPoint(60, -20, 1000, false, 110);
+	pros::delay(500);
+	chassi.moveToPoint(65, -20, 1000, true, 90);
+	chassi.turnTo(65, 100, 1000, true, 90);
+	pros::delay(750);
+	chassi.setPose(61.96, -36.517, 90);
+	chassi.follow(skillsusa3_txt, 15.0f, 2000, false, false);
+	pros::delay(2000);
+	chassi.turnTo(-144, -15.688, 500, true, 90);
+	pros::delay(100);
+	chassi.moveToPoint(48, -15.688, 1000, false, 100);
+	pros::delay(200);
+	chassi.follow(skillsusa4_txt, 15.0f, 2800, true, false);
+	pros::delay(2000);
+	chassi.turnTo(48, 10, 500, false, 90);
+	pros::delay(100);
+	pneum.set_value(true);
+	pros::delay(200);
+	chassi.follow(skillsusa5_txt, 15.0f, 2000, false, false);
+	pros::delay(100);
+	chassi.setPose(47.458, 8.042, 90);
+	chassi.moveToPoint(72, 8.042, 1000, true, 80);
+	pros::delay(200);
+	chassi.moveToPoint(47.458, 8.042, 1000, false);
 	//left
+
+
+	/*
 	chassi.turnTo(45,-10.05,1000);
 	chassi.moveToPoint(45,-10.05,1500,false);
 	pneum.set_value(true);
@@ -162,6 +202,7 @@ void autonomous() {
 	pros::delay(500);
 	chassi.moveToPoint(20,3.05,3000, true);
 	pneum.set_value(false);
+	*/
 }
 
 //driver control
