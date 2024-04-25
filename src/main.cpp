@@ -1,21 +1,6 @@
-//©2024 Team 8995B
-
-/*
-TODO
-(in order of importance)
-
-lock intake on double press
-bespoke arcade for judge awards
-
-mabe
-
-linear pid (requires horiz and vert tracking wheel, need to check if bot has space, especially vert)
-*/
 
 #include "main.h"
 #include "lemlib/api.hpp"
-
-//i hate using undocumented code 😭
 
 //motor setup
 
@@ -45,14 +30,13 @@ pros::MotorGroup rsm({rbm, rmm, rfm});
 pros::MotorGroup lsm({lbm, lmm,lfm});
 
 //drivetrain setup
-//why do you make me use doubles 😢
 lemlib::Drivetrain drivetrain {
 	&lsm, //left motors
 	&rsm, //right motors
 	11.5, //track width
-	3.25, //wheel diam
+	3.25, //wheel diameter
 	360.0, //rpm (36-60 gear ratio & 600 rpm motor)
-	0.0 //chase power: idk what this does, but it doesn't work wihout it.
+	0.0 //chase power
 };
 
 //odometry sensor setup
@@ -67,31 +51,30 @@ lemlib::OdomSensors odomSensors {
 //linear controller (odom)
 lemlib::ControllerSettings linearController { //(-0.1,0]
 	15, //kP
-	0, //kI ???
+	0, //kI
 	30, //kD
-	3, //anti-windup (idk what this is or what to make it)
+	3, //anti-windup
 	0.5, //small error
 	100, //small error timeout
 	1.5, //large error
 	500, //large error timeout
-	20 //slew rate ???
+	20 //slew rate
 };
 
 //angular controller (odom)
 lemlib::ControllerSettings angularController {
 	1.9, //kP
-	0, //kI ???
+	0, //kI
 	10, //kD
-	3, //anti-windup (idk what this is or what to make it)
+	3, //anti-windup
 	0.5, //small error
 	100, //small error timeout
 	1.5, //large error
 	500, //large error timeout
-	0 //slew rate ???
+	0 //slew rate
 };
 
-//chassis setup (finally)
-//bruh it doesnt let me name it "chassis" even though thats what it says in docs
+//chassis setup
 lemlib::Chassis chassi(drivetrain, linearController, angularController, odomSensors);
 
 //brain screen
@@ -103,7 +86,7 @@ void screen(){
 		pros::lcd::print(0, "x: %f", pose.x);
 		pros::lcd::print(1, "y: %f", pose.y);
 		pros::lcd::print(2, "heading: %f", pose.theta);
-		pros::lcd::print(3, "you're a bit skibidi");
+		pros::lcd::print(3, "SkillsUSA Time!!");
 		// master.print(1, 0, "%.2f", master.get_analog(ANALOG_LEFT_Y));
 		// master.print(2, 0, "%.2f", master.get_analog(ANALOG_RIGHT_Y));
 		pros::delay(10);
@@ -114,7 +97,7 @@ void screen(){
 void initialize(){
 	pros::lcd::initialize();
 	chassi.calibrate();
-	chassi.setPose(-43.033,-64.494,180);
+	chassi.setPose(-43.033,-64.494,180); //starting position based on jerry path
 	pros::Task screenTask(screen);
 }
 
@@ -126,83 +109,71 @@ ASSET(skillsusa3_txt);
 ASSET(skillsusa4_txt);
 ASSET(skillsusa5_txt);
 void autonomous() {
+	float match_load_time = 32; // we change this variable based on what we're testing
 	// SKILLZ
-	//go to matchload spot
+	// go to matchload spot
 	chassi.moveToPoint(-59.732,-49.971,2000,false,127.0f,false);
-	//turn to face cata
+	// turn to face cata
 	chassi.turnTo(37.403,-5.933,1000,false,127.0f,false);
-	//move back to touch bar
+	// move back to touch bar
 	chassi.moveToPoint(-58.732,-49.971,2000,true,127.0f,false);
-	//turn on cata
+
+
+	// turn on cata and open wings
 	pneum.set_value(true);
 	cata1.move_velocity(300);
-	//matchload
-	for (double i=0;i<=32;i+=0.01){
-		master.print(1, 0, "%.2fs",32-i);
+	// matchload for 32 seconds
+	for (double i=0;i<=match_load_time;i+=0.01){
+		master.print(1, 0, "%.2fs",match_load_time-i);
 		pros::delay(10);
 	}
-	cata1.brake();
-	pneum.set_value(false);
-	chassi.setPose(-58.732, -49.971, 240);
-	//push in ball(s)
+	cata1.brake(); // stop cata
+	pneum.set_value(false); // close wings
+	chassi.setPose(-58.732, -49.971, 240); //reset position in case inertial sensor becomes uncalibrated due to cata loading
+
+	// push balls into close goal
 	chassi.turnTo(-64.863,-68,2000);
 	chassi.moveToPoint(-64.863,-34.75,2000);
+
 	//crossover to other side
-	chassi.follow(skillsusa_txt, 15.0f,2800,false,false);
+	chassi.follow(skillsusa_txt, 15.0f,2800,false,false); // pure pursuit to cross over to other side
 	pros::delay(100);
 	chassi.setPose(34, -59, 270);
 	pros::delay(100);
-	chassi.follow(skillsusa2_txt, 15.0f, 1250, false, false);
+	chassi.follow(skillsusa2_txt, 15.0f, 1250, false, false); // navigate to side of far goal and push in balls
 	pros::delay(1500);
 	chassi.setPose(60, -20, 90);
+
+	//go back and push triballs in again just in case
 	chassi.moveToPoint(68, -20, 1000, true, 90);
 	pros::delay(500);
 	chassi.moveToPoint(60, -20, 1000, false, 110);
 	pros::delay(500);
 	chassi.moveToPoint(65, -20, 1000, true, 90);
+
+	//set up for pushing in triballs from front
 	chassi.turnTo(65, 100, 1000, true, 90);
 	pros::delay(750);
 	chassi.setPose(61.96, -36.517, 90);
-	chassi.follow(skillsusa3_txt, 15.0f, 2000, false, false);
+	chassi.follow(skillsusa3_txt, 15.0f, 2000, false, false); // navigate to front of goal
 	pros::delay(2000);
 	chassi.turnTo(-144, -15.688, 500, true, 90);
 	pros::delay(100);
-	chassi.moveToPoint(48, -15.688, 1000, false, 100);
+	chassi.moveToPoint(48, -15.688, 1000, false, 100); // push in triballs from front
 	pros::delay(200);
-	chassi.follow(skillsusa4_txt, 15.0f, 2800, true, false);
+	chassi.follow(skillsusa4_txt, 15.0f, 2800, true, false); // navigate to bottom left corner to get ready to push in triballs in
 	pros::delay(2000);
 	chassi.turnTo(48, 10, 500, false, 90);
 	pros::delay(100);
 	pneum.set_value(true);
 	pros::delay(200);
-	chassi.follow(skillsusa5_txt, 15.0f, 2000, false, false);
+	chassi.follow(skillsusa5_txt, 15.0f, 2000, false, false); // gather triballs and push them in from front
 	pros::delay(100);
 	chassi.setPose(47.458, 8.042, 90);
 	chassi.moveToPoint(72, 8.042, 1000, true, 80);
 	pros::delay(200);
-	chassi.moveToPoint(47.458, 8.042, 1000, false);
-	//left
-
-
-	/*
-	chassi.turnTo(45,-10.05,1000);
-	chassi.moveToPoint(45,-10.05,1500,false);
-	pneum.set_value(true);
-	//before -3 and -11 (10 and 3 now)
-	pros::delay(500);
-	chassi.moveToPoint(20,-11.05,1500,true);
-	chassi.moveToPoint(45,-11.05,1500,false);
-	pros::delay(500);
-	chassi.moveToPoint(20,-3.05,3000, true);
-	//right
-	chassi.moveToPoint(45,3.05,1500,false);
-	pros::delay(500);
-	chassi.moveToPoint(20,3.05,1500,true);
-	chassi.moveToPoint(45,3.05,1500,false);
-	pros::delay(500);
-	chassi.moveToPoint(20,3.05,3000, true);
-	pneum.set_value(false);
-	*/
+	chassi.moveToPoint(47.458, 8.042, 1000, false); // push in triballs again just in case
+	
 }
 
 //driver control
