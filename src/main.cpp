@@ -110,6 +110,7 @@ ASSET(skillsusa4_txt);
 ASSET(skillsusa5_txt);
 void autonomous() {
 	float match_load_time = 32; // we change this variable based on what we're testing
+	float pure_pursuit_time = 15.0f; // this variable dictates the maximum time that pure pursuit can take
 	// SKILLZ
 	// go to matchload spot
 	chassi.moveToPoint(-59.732,-49.971,2000,false,127.0f,false);
@@ -182,7 +183,7 @@ bool cataOn = false;
 
 void opcontrol(){
 	// //go to matchload spot
-  // chassi.moveToPoint(-59.732,-49.971,2000,false,127.0f,false);
+  	// chassi.moveToPoint(-59.732,-49.971,2000,false,127.0f,false);
 	// //turn to face cata
 	// chassi.turnTo(37.403,-1.933,1000,false,127.0f,false);
 	// //move back to touch bar
@@ -192,17 +193,17 @@ void opcontrol(){
 	// cata1.move_velocity(100);
 	// //cata2.move_velocity(100);
 	while (true){
-		//drive (mabe change later)
-		chassi.tank(master.get_analog(ANALOG_LEFT_Y), master.get_analog(ANALOG_RIGHT_Y), 2.7);
+		float curve_value = 2.7f; // we custom tune this, depends on how fast our driver curves should be
+		chassi.tank(master.get_analog(ANALOG_LEFT_Y), master.get_analog(ANALOG_RIGHT_Y), curve_value);
 		//intake
 		if (master.get_digital(DIGITAL_L1)){
-			intake.move_velocity(300);
+			intake.move_velocity(300); // run intake forwards
 		} else if (master.get_digital(DIGITAL_L2)) {
-			intake.move_velocity(-300);
+			intake.move_velocity(-300); // else run intake backwards
 		} else {
 			intake.brake();
 		}
-		//puncher
+		//puncher: pressing button once keeps it on until disabled
 		if (master.get_digital_new_press(DIGITAL_R1)){
 			if (!cataOn){
 				cataOn = true;
@@ -210,6 +211,7 @@ void opcontrol(){
 				//cata2.move_velocity(100);
 			}
 		}
+		// pressing this button once disables it until R1 is pressed
 		if (master.get_digital_new_press(DIGITAL_R2)){
 			if (cataOn){
 				cataOn = false;
@@ -217,11 +219,12 @@ void opcontrol(){
 				//cata2.brake();
 			}
 		}
-		//pneumatics
+
+		// pneumatics: set pneumatic value to opposite of what it is currently
 		if (master.get_digital_new_press(DIGITAL_X)){
 			pneumOut = !pneumOut;
 			pneum.set_value(pneumOut);
-			master.rumble(".");
+			master.rumble("."); // user notification
 		}
 		pros::delay(10);
 	}
