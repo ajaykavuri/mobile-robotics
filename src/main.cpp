@@ -74,6 +74,13 @@ lemlib::ControllerSettings angularController {
 	0 //slew rate
 };
 
+void printTelemetry(lemlib::Pose pose) {
+	pros::lcd::print(0, "x: %f", pose.x);
+	pros::lcd::print(1, "y: %f", pose.y);
+	pros::lcd::print(2, "heading: %f", pose.theta);
+	pros::lcd::print(3, "velocity: %f", lsm.get_actual_velocities()[0]);
+}
+
 //chassis setup
 lemlib::Chassis chassi(drivetrain, linearController, angularController, odomSensors);
 
@@ -83,10 +90,7 @@ void screen(){
 		//print current position info to brain
 		//x and y don't work because inertial only works for turning
 		lemlib::Pose pose = chassi.getPose();
-		pros::lcd::print(0, "x: %f", pose.x);
-		pros::lcd::print(1, "y: %f", pose.y);
-		pros::lcd::print(2, "heading: %f", pose.theta);
-		pros::lcd::print(3, "SkillsUSA Time!!");
+		printTelemetry(pose);
 		// master.print(1, 0, "%.2f", master.get_analog(ANALOG_LEFT_Y));
 		// master.print(2, 0, "%.2f", master.get_analog(ANALOG_RIGHT_Y));
 		pros::delay(10);
