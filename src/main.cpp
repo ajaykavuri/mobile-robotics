@@ -109,15 +109,19 @@ ASSET(skillsusa3_txt);
 ASSET(skillsusa4_txt);
 ASSET(skillsusa5_txt);
 void autonomous() {
-	float match_load_time = 32; // we change this variable based on what we're testing
+
+	float med_speed = 90.0f; // this speed is for medium speed and better precision
+	float full_speed = 127.0f; // this speed is best for pushing in triballs with maximum momentum
+	float match_load_time = 32.0f; // we change this variable based on what we're testing
 	float pure_pursuit_time = 15.0f; // this variable dictates the maximum time that pure pursuit can take
+
 	// SKILLZ
 	// go to matchload spot
-	chassi.moveToPoint(-59.732,-49.971,2000,false,127.0f,false);
+	chassi.moveToPoint(-59.732,-49.971,2000,false,full_speed,false);
 	// turn to face cata
-	chassi.turnTo(37.403,-5.933,1000,false,127.0f,false);
+	chassi.turnTo(37.403,-5.933,1000,false,full_speed,false);
 	// move back to touch bar
-	chassi.moveToPoint(-58.732,-49.971,2000,true,127.0f,false);
+	chassi.moveToPoint(-58.732,-49.971,2000,true,full_speed,false);
 
 
 	// turn on cata and open wings
@@ -146,32 +150,32 @@ void autonomous() {
 	chassi.setPose(60, -20, 90);
 
 	//go back and push triballs in again just in case
-	chassi.moveToPoint(68, -20, 1000, true, 90);
+	chassi.moveToPoint(68, -20, 1000, true, med_speed);
 	pros::delay(500);
 	chassi.moveToPoint(60, -20, 1000, false, 110);
 	pros::delay(500);
-	chassi.moveToPoint(65, -20, 1000, true, 90);
+	chassi.moveToPoint(65, -20, 1000, true, med_speed);
 
 	//set up for pushing in triballs from front
-	chassi.turnTo(65, 100, 1000, true, 90);
+	chassi.turnTo(65, 100, 1000, true, med_speed);
 	pros::delay(750);
 	chassi.setPose(61.96, -36.517, 90);
 	chassi.follow(skillsusa3_txt, 15.0f, 2000, false, false); // navigate to front of goal
 	pros::delay(2000);
-	chassi.turnTo(-144, -15.688, 500, true, 90);
+	chassi.turnTo(-144, -15.688, 500, true, med_speed);
 	pros::delay(100);
-	chassi.moveToPoint(48, -15.688, 1000, false, 100); // push in triballs from front
+	chassi.moveToPoint(48, -15.688, 1000, false, full_speed); // push in triballs from front
 	pros::delay(200);
 	chassi.follow(skillsusa4_txt, 15.0f, 2800, true, false); // navigate to bottom left corner to get ready to push in triballs in
 	pros::delay(2000);
-	chassi.turnTo(48, 10, 500, false, 90);
+	chassi.turnTo(48, 10, 500, false, med_speed);
 	pros::delay(100);
 	pneum.set_value(true);
 	pros::delay(200);
 	chassi.follow(skillsusa5_txt, 15.0f, 2000, false, false); // gather triballs and push them in from front
 	pros::delay(100);
 	chassi.setPose(47.458, 8.042, 90);
-	chassi.moveToPoint(72, 8.042, 1000, true, 80);
+	chassi.moveToPoint(72, 8.042, 1000, true, med_speed);
 	pros::delay(200);
 	chassi.moveToPoint(47.458, 8.042, 1000, false); // push in triballs again just in case
 	
@@ -182,41 +186,48 @@ bool pneumOut = false;
 bool cataOn = false;
 
 void opcontrol(){
-	// //go to matchload spot
-  	// chassi.moveToPoint(-59.732,-49.971,2000,false,127.0f,false);
-	// //turn to face cata
-	// chassi.turnTo(37.403,-1.933,1000,false,127.0f,false);
-	// //move back to touch bar
-	// chassi.moveToPoint(-58.732,-49.971,2000,true,127.0f,false);
-	// //turn on cata
-	// cataOn = true;
-	// cata1.move_velocity(100);
-	// //cata2.move_velocity(100);
+
+	// run autonomous routine first to setup match loading quickly
+
+	//go to matchload spot
+  	chassi.moveToPoint(-59.732,-49.971,2000,false,127.0f,false);
+	//turn to face cata
+	chassi.turnTo(37.403,-1.933,1000,false,127.0f,false);
+	//move back to touch bar
+	chassi.moveToPoint(-58.732,-49.971,2000,true,127.0f,false);
+	//turn on cata
+	cataOn = true;
+	cata1.move_velocity(100);
+
 	while (true){
+
 		float curve_value = 2.7f; // we custom tune this, depends on how fast our driver curves should be
+		int full_vel = 128; // full velocity: makes sure that the robot moves this motor at full velocity
+
 		chassi.tank(master.get_analog(ANALOG_LEFT_Y), master.get_analog(ANALOG_RIGHT_Y), curve_value);
+
 		//intake
 		if (master.get_digital(DIGITAL_L1)){
-			intake.move_velocity(300); // run intake forwards
+			intake.move_velocity(full_vel); // run intake forwards
 		} else if (master.get_digital(DIGITAL_L2)) {
-			intake.move_velocity(-300); // else run intake backwards
+			intake.move_velocity(-1*full_vel); // else run intake backwards
 		} else {
 			intake.brake();
 		}
+
 		//puncher: pressing button once keeps it on until disabled
 		if (master.get_digital_new_press(DIGITAL_R1)){
 			if (!cataOn){
 				cataOn = true;
-				cata1.move_velocity(300);
-				//cata2.move_velocity(100);
+				cata1.move_velocity(full_vel);
 			}
 		}
+
 		// pressing this button once disables it until R1 is pressed
 		if (master.get_digital_new_press(DIGITAL_R2)){
 			if (cataOn){
 				cataOn = false;
 				cata1.brake();
-				//cata2.brake();
 			}
 		}
 
@@ -226,6 +237,7 @@ void opcontrol(){
 			pneum.set_value(pneumOut);
 			master.rumble("."); // user notification
 		}
+
 		pros::delay(10);
 	}
 }
