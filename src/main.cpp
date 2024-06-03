@@ -101,7 +101,7 @@ void screen(){
 void initialize(){
 	pros::lcd::initialize();
 	chassi.calibrate();
-	chassi.setPose(-43.033,-64.494,180); //starting position based on jerry path
+	chassi.setPose(-58.732, -49.971, 240); //starting position based on jerry path
 	pros::Task screenTask(screen);
 }
 
@@ -119,13 +119,13 @@ void autonomous() {
 	float match_load_time = 32.0f; // we change this variable based on what we're testing
 	float pure_pursuit_time = 15.0f; // this variable dictates the maximum time that pure pursuit can take
 
-	// SKILLZ
-	// go to matchload spot
-	chassi.moveToPoint(-59.732,-49.971,2000,false,full_speed,false);
-	// turn to face cata
-	chassi.turnTo(37.403,-5.933,1000,false,full_speed,false);
-	// move back to touch bar
-	chassi.moveToPoint(-58.732,-49.971,2000,true,full_speed,false);
+	// // SKILLZ
+	// // go to matchload spot
+	// chassi.moveToPoint(-59.732,-49.971,2000,false,full_speed,false);
+	// // turn to face cata
+	// chassi.turnTo(37.403,-5.933,1000,false,full_speed,false);
+	// // move back to touch bar
+	// chassi.moveToPoint(-58.732,-49.971,200,true,full_speed,false);
 
 
 	// turn on cata and open wings
